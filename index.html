@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUXILIO VIP BY @SIOUX.SENSI</title>
+    
+    <!-- Configuración PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ef4444">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SioxVIP">
+    <link rel="apple-touch-icon" href="icon.png">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Fondo de átomos/partículas blancas */
+        #particles-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Notificación / Terminal superior */
+        #ios-shortcut-toast {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-160px);
+            z-index: 999;
+            width: 92%;
+            max-width: 360px;
+            background: rgba(18, 18, 20, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(239, 68, 68, 0.6);
+            border-radius: 20px;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: 0 10px 35px rgba(239, 68, 68, 0.3);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+        }
+
+        #ios-shortcut-toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ios-icon {
+            width: 28px;
+            height: 28px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+
+        .ios-icon svg {
+            width: 16px;
+            height: 16px;
+            fill: #ffffff;
+        }
+
+        .ios-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .terminal-box {
+            background: #08080a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-family: monospace;
+            font-size: 0.7rem;
+            color: #22c55e;
+            max-height: 90px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        /* Contenedor transparente principal */
+        .container {
+            position: relative;
+            z-index: 2;
+            width: 92%;
+            max-width: 400px;
+            height: 650px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #ef4444;
+            border-radius: 20px;
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.6);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            backdrop-filter: blur(6px);
+            padding: 20px 16px;
+        }
+
+        .panel-header {
+            position: relative;
+            text-align: center;
+            font-size: 1.05rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 8px rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .panel-header span {
+            font-size: 0.6rem;
+            background: #ef4444;
+            padding: 1px 6px;
+            border-radius: 4px;
+        }
+
+        /* Imagen de perfil en la interfaz */
+        .profile-avatar {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid #ef4444;
+            object-fit: cover;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+        }
+
+        /* Pestañas */
+        .tabs {
+            display: flex;
+            background-color: rgba(20, 20, 22, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 3px;
+            margin-bottom: 12px;
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 6px 0;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #a1a1aa;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background-color: #ef4444;
+            color: #ffffff;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+
+        .tab-content {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 2px;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        /* Chat IA */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            gap: 10px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            background: rgba(10, 10, 12, 0.85);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 12px;
+            padding: 10px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .chat-bubble {
+            max-width: 85%;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 0.78rem;
+            line-height: 1.3;
+            word-wrap: break-word;
+        }
+
+        .chat-bubble.ai {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #ffffff;
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+
+        .chat-bubble.user {
+            background: #ef4444;
+            color: #ffffff;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+            font-weight: 600;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: rgba(20, 20, 25, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 10px 12px;
+            color: #ffffff;
+            font-size: 0.8rem;
+        }
+
+        .chat-input:focus {
+            border-color: #ef4444;
+        }
+
+        .chat-send-btn, .chat-mic-btn {
+            background: #ef4444;
+            border: none;
+            border-radius: 10px;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+        }
+
+        .chat-mic-btn.listening {
+            background: #22c55e;
+            animation: pulse-ai 1.2s infinite;
+        }
+
+        @keyframes pulse-ai {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
+
+        .aimbot-layout {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .aimbot-controls {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .character-preview {
+            position: relative;
+            width: 100px;
+            height: 155px;
+            background: rgba(20, 20, 22, 0.6);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .character-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.85;
+        }
+
+        .target-dot {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #ff0000;
+            background: rgba(255, 0, 0, 0.4);
+            border-radius: 50%;
+            box-shadow: 0 0 8px #ff0000;
+            transition: top 0.3s ease, left 0.3s ease;
+            pointer-events: none;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 10px;
+        }
+
+        .zone-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+
+        .zone-btn {
+            background: rgba(20, 20, 22, 0.9);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            padding: 8px 4px;
+            border-radius: 8px;
+            color: #a1a1aa;
+            font-size: 0.72rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .zone-btn.active {
+            background: #ef4444;
+            border-color: #ef4444;
+            color: #ffffff;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+        }
+
+        .control-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: #ffffff;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.9);
+        }
+
+        .control-item input[type="checkbox"] {
+            width: 15px;
+            height: 15px;
+            accent-color: #ef4444;
+            cursor: pointer;
+        }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: #ef4444;
+            cursor: pointer;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: #ffffff;
+        }
+
+        .radio-item input[type="radio"] {
+            accent-color: #ef4444;
+            width: 14px;
+            height: 14px;
+        }
+
+        .video-container {
+            width: 100%;
+            height: 130px;
+            margin-top: 5px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            background: #000000;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+        }
+
+        .video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .btn-inject {
+            margin-top: auto;
+            width: 100%;
+            padding: 11px;
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.82rem;
+            font-weight: 800;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-inject:active {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="particles-canvas"></canvas>
+
+    <div id="ios-shortcut-toast">
+        <div class="toast-header">
+            <div class="ios-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                </svg>
+            </div>
+            <div class="ios-text">
+                <span class="ios-title" id="toast-main-title">Modi GPT Activo</span>
+            </div>
+        </div>
+        <div class="terminal-box" id="terminal-commands-list">
+            <div>> [SYSTEM] Funciones en OFF listas...</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Cabecera con imagen de perfil y título -->
+        <div class="panel-header">
+            <img src="perfil.png" alt="Perfil" class="profile-avatar" onerror="this.style.display='none'">
+            AUXILIO VIP BY @SIOUX.SENSI <span>PRO</span>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="setTab(event, 'aimbot')">Aimbot</div>
+            <div class="tab" onclick="setTab(event, 'config')">Optimizador</div>
+            <div class="tab" onclick="setTab(event, 'chat-ia')">🤖 Chat IA</div>
+            <div class="tab" onclick="setTab(event, 'info')">Info</div>
+        </div>
+
+        <!-- Pestaña Aimbot VIP -->
+        <div id="aimbot" class="tab-content active">
+            <div class="aimbot-layout">
+                <div class="character-preview">
+                    <img src="auxilio.png" alt="Personaje Free Fire" onerror="this.style.display='none'">
+                    <div id="target-dot" class="target-dot"></div>
+                </div>
+
+                <div class="aimbot-controls">
+                    <label class="control-item">
+                        <input type="checkbox" class="opt-check" data-name="Auxilio Inteligente"> Auxilio Inteligente
+                    </label>
+                    <label class="control-item">
+                        <input type="checkbox" class="opt-check" data-name="No Recoil Legit"> No Recoil Legit
+                    </label>
+                    <label class="control-item">
+                        <input type="checkbox" class="opt-check" data-name="Supresor de Disparo"> Supresor de Disparo
+                    </label>
+                    <label class="control-item">
+                        <input type="checkbox" class="opt-check" data-name="Estabilizador de Mira"> Estabilizador de Mira
+                    </label>
+                    <label class="control-item">
+                        <input type="checkbox" class="opt-check" data-name="Auto Headshot 60%"> Auto Headshot 60%
+                    </label>
+                </div>
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-header">
+                    <span>Fov Target</span>
+                    <span id="fov-num">50</span>
+                </div>
+                <input type="range" min="0" max="100" value="50" oninput="document.getElementById('fov-num').innerText = this.value">
+            </div>
+
+            <div class="zone-selector">
+                <button type="button" id="btn-head" class="zone-btn active" onclick="updateTargetPosition('Head')">Cabeza</button>
+                <button type="button" id="btn-cuello" class="zone-btn" onclick="updateTargetPosition('Cuello')">Cuello</button>
+                <button type="button" id="btn-peito" class="zone-btn" onclick="updateTargetPosition('Peito')">Pecho</button>
+            </div>
+
+            <div class="radio-group">
+                <label class="radio-item">
+                    <input type="radio" name="trig" checked> Al Disparar
+                </label>
+                <label class="radio-item">
+                    <input type="radio" name="trig"> Al Mirar
+                </label>
+            </div>
+
+            <button class="btn-inject" onclick="injectActiveOptions()">Inyectar Funciones VIP</button>
+        </div>
+
+        <!-- Pestaña Optimizador -->
+        <div id="config" class="tab-content">
+            <label class="control-item">
+                <input type="checkbox" class="opt-check" data-name="Bypass Térmico de Batería"> Bypass Térmico de Batería
+            </label>
+            <label class="control-item">
+                <input type="checkbox" class="opt-check" data-name="Forzar Tasa 120 FPS"> Forzar Tasa de Refresco (120 FPS)
+            </label>
+            <label class="control-item">
+                <input type="checkbox" class="opt-check" data-name="Estabilizador de Red / Ping"> Estabilizador de Red / Ping
+            </label>
+            <label class="control-item">
+                <input type="checkbox" class="opt-check" data-name="Touch Boost (Latencia Táctil)"> Reducción de Latencia Táctil (Touch Boost)
+            </label>
+            <label class="control-item">
+                <input type="checkbox" class="opt-check" data-name="Limpieza Automática de RAM"> Limpieza Automática de RAM
+            </label>
+            <label class="control-item">
+                <input type="checkbox" class="opt-check" data-name="Bloqueo de FPS Estables"> Bloqueo de FPS Estables
+            </label>
+            <label class="control-item">
+                <input type="checkbox" class="opt-check" data-name="Aceleración WebGL"> Aceleración por Hardware WebGL
+            </label>
+            <label class="control-item">
+                <input type="checkbox" class="opt-check" data-name="Optimizador de Memoria Caché"> Optimizador de Memoria Caché
+            </label>
+            <button class="btn-inject" onclick="injectActiveOptions()">Aplicar Optimizaciones</button>
+        </div>
+
+        <!-- Pestaña Chat IA -->
+        <div id="chat-ia" class="tab-content">
+            <div class="chat-container">
+                <div class="chat-messages" id="chat-messages-box">
+                    <div class="chat-bubble ai">Hola, soy Modi GPT. Di "Oye Siox", pide "activar todo" o di el nombre de cualquier función para activarla.</div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="chat-text-input" class="chat-input" placeholder="Escribe un comando..." onkeypress="handleChatKeyPress(event)">
+                    <button class="chat-mic-btn" id="chat-mic-btn" onclick="toggleChatVoice()" title="Hablar por voz">🎙️</button>
+                    <button class="chat-send-btn" onclick="sendChatMessage()" title="Enviar">➤</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pestaña Info -->
+        <div id="info" class="tab-content">
+            <p style="color: #d4d4d8; font-size: 0.78rem; line-height: 1.35; text-shadow: 0 0 5px #000;">
+                Auxilio de mira y optimización diseñado con el fin de mejorar la respuesta táctil y la sensibilidad, 100% seguro y sin riesgo de baneo.
+            </p>
+            
+            <div class="video-container">
+                <video autoplay loop muted playsinline controls>
+                    <source src="video.mp4" type="video/mp4">
+                    Tu navegador no soporta la reproducción de video.
+eline controls>
+                    <source src="video.mp4" type="video/mp4">
+                    Tu navegador no soporta la reproducción de video.
+                </video>
+            </div>
+
+            <p style="color: #ef4444; font-size: 0.8rem; font-weight: bold; margin-top: 4px;">
+                Copyright: 8z'balboe
+            </p>
+        </div>
+    </div>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => console.log(err));
+            });
+        }
+
+        function setTab(e, tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            if (e && e.currentTarget) {
+                e.currentTarget.classList.add('active');
+            } else {
+                const tabs = document.querySelectorAll('.tab');
+                if (tabName === 'aimbot') tabs[0].classList.add('active');
+                if (tabName === 'config') tabs[1].classList.add('active');
+                if (tabName === 'chat-ia') tabs[2].classList.add('active');
+                if (tabName === 'info') tabs[3].classList.add('active');
+            }
+        }
+
+        function updateTargetPosition(zone) {
+            const dot = document.getElementById('target-dot');
+            document.querySelectorAll('.zone-btn').forEach(b => b.classList.remove('active'));
+
+            dot.style.left = '50%';
+            dot.style.transform = 'translateX(-50%)';
+
+            if (zone === 'Head') {
+                dot.style.top = '10px';   
+                document.getElementById('btn-head').classList.add('active');
+            } else if (zone === 'Cuello') {
+                dot.style.top = '25px';   
+                document.getElementById('btn-cuello').classList.add('active');
+            } else if (zone === 'Peito') {
+                dot.style.top = '45px';   
+                document.getElementById('btn-peito').classList.add('active');
+            }
+        }
+
+        function playIosSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1046.50, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(1318.51, audioCtx.currentTime + 0.08);
+
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.35);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.35);
+            } catch (e) {}
+        }
+
+        let isSpeaking = false;
+        let chatRecognition;
+        let isChatListening = false;
+
+        function speakAI(text, callback) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                isSpeaking = true;
+
+                if (chatRecognition && isChatListening) {
+                    try { chatRecognition.stop(); } catch (e) {}
+                }
+
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'es-ES';
+                utterance.rate = 1.15;
+
+                utterance.onend = () => {
+                    isSpeaking = false;
+                    if (isChatListening && chatRecognition) {
+                        try { chatRecognition.start(); } catch (e) {}
+                    }
+                    if (callback) callback();
+                };
+                utterance.onerror = () => {
+                    isSpeaking = false;
+                    if (isChatListening && chatRecognition) {
+                        try { chatRecognition.start(); } catch (e) {}
+                    }
+                    if (callback) callback();
+                };
+
+                window.speechSynthesis.speak(utterance);
+            } else {
+                isSpeaking = false;
+                if (callback) callback();
+            }
+        }
+
+        function appendChatMessage(sender, text) {
+            const chatBox = document.getElementById('chat-messages-box');
+            const bubble = document.createElement('div');
+            bubble.className = `chat-bubble ${sender}`;
+            bubble.innerText = text;
+            chatBox.appendChild(bubble);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-text-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            appendChatMessage('user', text);
+            input.value = '';
+            processAiCommand(text.toLowerCase());
+        }
+
+        function handleChatKeyPress(e) {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        }
+
+        function toggleChatVoice() {
+            const micBtn = document.getElementById('chat-mic-btn');
+
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert("Tu navegador no soporta reconocimiento de voz.");
+                return;
+            }
+
+            if (isChatListening) {
+                isChatListening = false;
+                if (chatRecognition) chatRecognition.stop();
+                micBtn.classList.remove('listening');
+                speakAI("Asistente de voz en pausa");
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            chatRecognition = new SpeechRecognition();
+            chatRecognition.lang = 'es-ES';
+            chatRecognition.continuous = true;
+            chatRecognition.interimResults = false;
+
+            chatRecognition.onstart = () => {
+                isChatListening = true;
+                micBtn.classList.add('listening');
+                playIosSound();
+                appendChatMessage('ai', "Escuchando... Di tu comando.");
+            };
+
+            chatRecognition.onresult = (event) => {
+                if (isSpeaking) return;
+
+                const lastIndex = event.results.length - 1;
+                const userSpeech = event.results[lastIndex][0].transcript.trim();
+                
+                appendChatMessage('user', userSpeech);
+                processAiCommand(userSpeech.toLowerCase());
+            };
+
+            chatRecognition.onerror = () => {};
+            chatRecognition.onend = () => {
+                if (isChatListening && !isSpeaking) {
+                    try { chatRecognition.start(); } catch (e) {}
+                }
+            };
+
+            try {
+                chatRecognition.start();
+            } catch (e) {
+                isChatListening = false;
+                micBtn.classList.remove('listening');
+            }
+        }
+
+        function injectActiveOptions() {
+            playIosSound();
+
+            const checkboxes = document.querySelectorAll('.opt-check');
+            const terminal = document.getElementById('terminal-commands-list');
+            document.getElementById('toast-main-title').innerText = "Modi GPT: Inyección Exitosa";
+            terminal.innerHTML = '<div>> [SYSTEM] Activando e inyectando funciones VIP...</div>';
+
+            checkboxes.forEach(chk => {
+                chk.checked = true;
+                const name = chk.getAttribute('data-name');
+                terminal.innerHTML += `<div>> Injecting: ${name} [OK]</div>`;
+            });
+
+            const toast = document.getElementById('ios-shortcut-toast');
+            toast.classList.add('show');
+
+            const successText = "Todas las funciones han sido activadas e inyectadas correctamente";
+            appendChatMessage('ai', successText);
+            speakAI(successText);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function processAiCommand(text) {
+            const toast = document.getElementById('ios-shortcut-toast');
+            const terminal = document.getElementById('terminal-commands-list');
+            const savedName = localStorage.getItem('siox_username') || "Usuario";
+
+            if (text.includes('oye siox') || text.includes('siox') || text.includes('hola')) {
+                playIosSound();
+                if (!savedName) {
+                    window.waitingName = true;
+                    const reply = "Hola, soy Modi GPT. ¿Cuál es tu nombre?";
+                    appendChatMessage('ai', reply);
+                    speakAI(reply);
+                } else {
+                    const reply = `Hola ${savedName}, ¿qué deseas activar?`;
+                    appendChatMessage('ai', reply);
+                    speakAI(reply);
+                }
+                return;
+            }
+
+            if (window.waitingName) {
+                let name = text.replace("mi nombre es", "").replace("soy", "").replace("me llamo", "").trim();
+                name = name.charAt(0).toUpperCase() + name.slice(1);
+                localStorage.setItem('siox_username', name);
+                window.waitingName = false;
+                playIosSound();
+                const reply = `Mucho gusto ${name}, ¿qué deseas activar en tu panel?`;
+                appendChatMessage('ai', reply);
+                speakAI(reply);
+                return;
+            }
+
+            if (text.includes('todo') || text.includes('todas') || text.includes('inyectar') || text.includes('aplicar')) {
+                injectActiveOptions();
+                return;
+            }
+
+            document.getElementById('toast-main-title').innerText = `Comando: "${text}"`;
+            terminal.innerHTML = `<div>> [AI_NEURAL] ${savedName}: "${text}"</div>`;
+
+            let executed = false;
+
+            if (text.includes('aimbot') || text.includes('pestaña aimbot')) {
+                setTab(null, 'aimbot');
+                terminal.innerHTML += `<div>> [TAB] Aimbot VIP [OK]</div>`;
+                executed = true;
+            } 
+            if (text.includes('optimizar') || text.includes('optimizador') || text.includes('config')) {
+                setTab(null, 'config');
+                terminal.innerHTML += `<div>> [TAB] Optimizador [OK]</div>`;
+                executed = true;
+            } 
+            if (text.includes('cabeza') || text.includes('head')) {
+                updateTargetPosition('Head');
+                terminal.innerHTML += `<div>> [AIM] Zona: Cabeza [OK]</div>`;
+                executed = true;
+            } 
+            if (text.includes('cuello')) {
+                updateTargetPosition('Cuello');
+                terminal.innerHTML += `<div>> [AIM] Zona: Cuello [OK]</div>`;
+                executed = true;
+            } 
+            if (text.includes('pecho') || text.includes('peito')) {
+                updateTargetPosition('Peito');
+                terminal.innerHTML += `<div>> [AIM] Zona: Pecho [OK]</div>`;
+                executed = true;
+            }
+
+            const checkboxes = document.querySelectorAll('.opt-check');
+            checkboxes.forEach(chk => {
+                const fname = chk.getAttribute('data-name').toLowerCase();
+                if (text.includes(fname) || text.includes(fname.split(' ')[0])) {
+                    chk.checked = true;
+                    terminal.innerHTML += `<div>> [CHECK] ${chk.getAttribute('data-name')}: ACTIVADO</div>`;
+                    executed = true;
+                }
+            });
+
+            if (!executed) {
+                terminal.innerHTML += `<div>> [EXEC] Comando procesado por Modi GPT [OK]</div>`;
+            }
+
+            toast.classList.add('show');
+            playIosSound();
+            
+            const confirmMsg = "Activado con éxito";
+            appendChatMessage('ai', confirmMsg);
+            speakAI(confirmMsg);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3200);
+        }
+
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const particles = [];
+        const particleCount = 40;
+        const maxDistance = 120;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.8;
+                this.vy = (Math.random() - 0.5) * 0.8;
+                this.radius = 2.5;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < maxDistance) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${0.8 - dist / maxDistance})`;
+                        ctx.lineWidth = 0.8;
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
